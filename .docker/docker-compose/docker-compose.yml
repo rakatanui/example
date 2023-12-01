@@ -1,0 +1,60 @@
+version: "3.8"
+name: "example"
+
+services:
+  ex-nginx:
+    image: nginx:alpine
+    container_name: ex-nginx
+    ports:
+      - "127.0.0.6:80:80"
+      - "127.0.0.6:443:443"
+    volumes:
+      - ../../app/:/var/www
+      - ../images/nginx/conf.d/:/etc/nginx/conf.d/
+      - ../images/nginx/logs/:/var/log/nginx/
+    networks:
+      - ex-network
+
+  ex-php:
+    build:
+      context: ../../
+      dockerfile: .docker/images/php/Dockerfile
+    container_name: ex-php
+    volumes:
+      - ../../app/:/var/www
+      - ../images/php/local.ini:/usr/local/etc/php/conf.d/local.ini
+      - ../images/php/xdebug.ini:/usr/local/etc/php/conf.d/docker-php-ext-xdebug.ini
+      - ../images/php/error_reporting.ini:/usr/local/etc/php/conf.d/error_reporting.ini
+    environment:
+      PHP_IDE_CONFIG: "serverName=ex"
+      SERVICE_NAME: app
+      SERVICE_TAGS: dev
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    networks:
+      - ex-network
+
+  ex-mysql:
+    image: mysql:8.1
+    container_name: ex-mysql
+    ports:
+      - "127.0.0.6:3306:3306"
+    environment:
+      MYSQL_DATABASE: example
+      MYSQL_ROOT_PASSWORD: root
+      SERVICE_TAGS: dev
+      SERVICE_NAME: mysql
+    volumes:
+      - example-db:/var/lib/mysql
+      - ../images/mysql/my.cnf:/etc/mysql/my.cnf
+      - ../images/mysql/logs:/var/lib/mysql/
+    networks:
+      - ex-network
+
+networks:
+  ex-network:
+    name: ex-network
+    driver: bridge
+
+volumes:
+  example-db:

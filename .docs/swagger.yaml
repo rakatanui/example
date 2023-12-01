@@ -1,0 +1,315 @@
+openapi: 3.0.3
+info:
+  title: User Asset API
+  version: 1.0.0
+
+paths:
+  /users/{user_id}/assets:
+    post:
+      summary: Create a user asset
+      parameters:
+        - name: user_id
+          in: path
+          required: true
+          schema:
+            type: integer
+        - name: label
+          in: query
+          required: true
+          schema:
+            type: string
+        - name: currency
+          in: query
+          required: true
+          schema:
+            type: string
+        - name: value
+          in: query
+          required: true
+          schema:
+            type: number
+      responses:
+        '201':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AssetWithUser'
+        '400':
+          description: invalid asset parameters
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    description: error description
+                    example: 'label cannot be empty.'
+    get:
+      summary: Get all user assets
+      parameters:
+        - name: user_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AssetWithUser'
+        '404':
+          description: if asset id is not exist
+          content:
+            application/json:
+              schema:
+                type: object
+    delete:
+      summary: Delete all assets from the specified user
+      parameters:
+        - name: user_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '204':
+          description: No Content
+        '400':
+          description: invalid asset ID
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    description: error description
+                    example: 'incorrect asset id.'
+        '500':
+          description: some internal errors
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    description: error message
+                    example: 'some error message.'
+
+  /users/{user_id}/assets/{asset_id}:
+    get:
+      summary: Get a user asset
+      parameters:
+        - name: user_id
+          in: path
+          required: true
+          schema:
+            type: integer
+        - name: asset_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AssetWithUser'
+        '404':
+          description: if asset id is not exist
+          content:
+            application/json:
+              schema:
+                type: object
+    put:
+      summary: Update a user asset
+      parameters:
+        - name: user_id
+          in: path
+          required: true
+          schema:
+            type: integer
+        - name: asset_id
+          in: path
+          required: true
+          schema:
+            type: integer
+        - name: new_label_value
+          in: query
+          schema:
+            type: string
+        - name: new_currency_value
+          in: query
+          schema:
+            type: string
+        - name: new_value_value
+          in: query
+          schema:
+            type: number
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AssetWithUser'
+        '400':
+          description: invalid asset parameters
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    description: error description
+                    example: 'label cannot be empty.'
+    delete:
+      summary: Delete a user asset
+      parameters:
+        - name: user_id
+          in: path
+          required: true
+          schema:
+            type: integer
+        - name: asset_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '204':
+          description: No Content
+        '400':
+          description: invalid asset ID
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    description: error description
+                    example: 'incorrect asset id.'
+        '500':
+          description: some internal errors
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    description: error message
+                    example: 'some error message.'
+  /users/{user_id}/assets-total-values:
+    get:
+      summary: Get the total value of all user assets in USD
+      parameters:
+        - name: user_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  total_assets_value_usd:
+                    type: number
+                    example: 2348726348.234
+  /users/{user_id}/assets-separate-values:
+    get:
+      summary: Get the separate value of each user asset in USD
+      parameters:
+        - name: user_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              example:
+                '{
+                  "binance": {
+                    "BTC": 3431956.3180600004,
+                    "USD": 100
+                  },
+                  "usb stick": {
+                    "BTC": 34319.5631806
+                  }
+                }'
+
+components:
+  schemas:
+    Asset:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: Asset ID
+          example: 5
+        label:
+          type: string
+          description: Asset label
+          example: 'binance'
+        currency:
+          type: string
+          description: Asset currency
+          example: 'BTC'
+        value:
+          type: number
+          description: Asset value
+          example: 12
+    AssetWithUser:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: Asset ID
+          example: 2
+        user:
+          type: object
+          properties:
+            id:
+              type: integer
+              description: User ID
+              example: 1
+            name:
+              type: string
+              description: User name
+              example: 'user_1'
+            email:
+              type: string
+              description: User email
+              example: 'eser_1@test.com'
+            assets:
+              type: array
+              items:
+                $ref: '#/components/schemas/Asset'
+        label:
+          type: string
+          description: Asset label
+          example: 'binance'
+        currency:
+          type: string
+          description: Asset currency
+          example: 'BTC'
+        value:
+          type: number
+          description: Asset value
+          example: 5
